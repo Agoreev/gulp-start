@@ -33,6 +33,7 @@ var path = {
         html: 'src/template/*.html', //Синтаксис src/template/*.html говорит gulp что мы хотим взять все файлы с расширением .html
         js: 'src/js/[^_]*.js',//В стилях и скриптах нам понадобятся только main файлы
         jshint: 'src/js/*.js',
+        jsVendor: 'src/js/vendor/*.js',
         css: 'src/css/styles.styl',
         cssVendor: 'src/css/vendor/*.*', //Если мы хотим файлы библиотек отдельно хранить то раскоментить строчку
         img: 'src/css/images/**/*.*', //Синтаксис img/**/*.* означает - взять все файлы всех расширений из папки и из вложенных каталогов
@@ -43,7 +44,8 @@ var path = {
     },
     watch: { //Тут мы укажем, за изменением каких файлов мы хотим наблюдать
         html: 'src/template/**/*.html',
-        js: 'src/js/**/*.js',
+        js: 'src/js/*.js',
+        jsVendor: 'src/js/vendor/*.js',
         css: 'src/css/**/*.*',
         img: 'src/css/images/**/*.*',
         contentImg: 'src/img/**/*.*',
@@ -89,6 +91,13 @@ gulp.task('js:build', function () {
         .pipe(rename({suffix: '.min'})) //добавим суффикс .min к выходному файлу
         .pipe(gulp.dest(path.build.js)) //выгрузим готовый файл в build
         .pipe(connect.reload()) //И перезагрузим сервер
+});
+
+//Переносим вендорный JS
+gulp.task('js:vendor', function () {
+	gulp.src(path.src.jsVendor)
+		.pipe(gulp.dest(path.build.js))
+		.pipe(connect.reload()) 
 });
 
 // билдим спрайты
@@ -144,7 +153,7 @@ gulp.task('cssOwn:build', function () {
             'include css': true
         })) //Скомпилируем stylus
         .pipe(prefixer({
-            browser: ['last 3 version', "> 1%", "ie 8", "ie 7"]
+            browsers: ['last 3 version', "> 1%", "ie 8", "ie 7"]
         })) //Добавим вендорные префиксы
         .pipe(cssmin()) //Сожмем
         .pipe(sourcemaps.write()) //пропишем sourcemap
@@ -166,7 +175,7 @@ gulp.task('cssVendor:build', function () {
 // билдим css целиком
 gulp.task('css:build', [
     'cssOwn:build',
-    // 'cssVendor:build'
+    'cssVendor:build'
 ]);
 
 // билдим шрифты
@@ -186,6 +195,7 @@ gulp.task('build', [
     'html:build',
     'jshint:build',
     'js:build',
+    'js:vendor',
     'sprites:build',
     'css:build',
     'fonts:build',
@@ -223,6 +233,10 @@ gulp.task('watch', function(){
     watch([path.watch.js], function(event, cb) {
         gulp.start('js:build');
     });
+    //Следим за вендорным js
+    watch([path.watch.jsVendor], function(event,cb) {
+    	gulp.start('js:vendor');
+    })
      //билдим статичные изображения в случае изменения
     watch([path.watch.img], function(event, cb) {
         gulp.start('image:build');

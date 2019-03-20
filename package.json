@@ -6,7 +6,7 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
-    "gulp": "latest",
+    "gulp": "^3.9.1",
     "gulp-autoprefixer": "latest",
     "gulp-connect": "latest",
     "gulp-imagemin": "latest",
